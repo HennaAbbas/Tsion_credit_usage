@@ -2,8 +2,6 @@
 
 A lightweight, browser-based dashboard for analyzing CircleCI usage metrics to optimize CI/CD costs and performance.
 
-![Dashboard Screenshot](https://user-images.githubusercontent.com/HennaAbbas/Tsion_credit_usage/main/screenshot.png)
-
 ## Features
 
 This dashboard provides six key visualizations to help you understand your CircleCI usage patterns:
