@@ -1,1 +1,782 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CircleCI Insights Dashboard</title>
+  <!-- Include Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- PapaParse for CSV parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <!-- Lodash for data manipulation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+  <!-- Chart.js for visualizations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body class="bg-gray-50">
+  <div class="container mx-auto p-4">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-800">CircleCI Insights Dashboard</h1>
+      <p class="text-gray-600 mt-2">Analyze your CircleCI usage patterns and cost distributions</p>
+    </header>
+
+    <div id="file-upload" class="mb-8 p-6 bg-white rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Upload CircleCI Usage Report</h2>
+      <div class="flex flex-col space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Select CircleCI Usage Report CSV File
+          </label>
+          <input 
+            type="file" 
+            id="csv-file" 
+            accept=".csv" 
+            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+          >
+        </div>
+        <div id="error-message" class="hidden p-4 bg-red-100 text-red-700 rounded-md"></div>
+      </div>
+    </div>
+
+    <div id="loading" class="hidden mb-8 p-6 bg-white rounded-lg shadow flex items-center justify-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
+      <span class="ml-3 text-lg">Analyzing your data...</span>
+    </div>
+
+    <div id="results" class="hidden">
+      <!-- Summary Stats -->
+      <div class="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="p-4 bg-white rounded-lg shadow">
+          <h3 class="text-sm font-medium text-gray-500">Total Jobs Analyzed</h3>
+          <p id="total-jobs" class="mt-1 text-2xl font-semibold text-gray-900">0</p>
+        </div>
+        <div class="p-4 bg-white rounded-lg shadow">
+          <h3 class="text-sm font-medium text-gray-500">Total Credits Used</h3>
+          <p id="total-credits" class="mt-1 text-2xl font-semibold text-gray-900">0</p>
+        </div>
+        <div class="p-4 bg-white rounded-lg shadow">
+          <h3 class="text-sm font-medium text-gray-500">Success Rate</h3>
+          <p id="success-rate" class="mt-1 text-2xl font-semibold text-gray-900">0%</p>
+        </div>
+        <div class="p-4 bg-white rounded-lg shadow">
+          <h3 class="text-sm font-medium text-gray-500">Avg. Job Duration</h3>
+          <p id="avg-duration" class="mt-1 text-2xl font-semibold text-gray-900">0s</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Top 10 Credit Consuming Projects -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h2 class="text-xl font-semibold mb-4">Top 10 Credit Consuming Projects</h2>
+          <canvas id="projects-credits-chart" height="300"></canvas>
+        </div>
+        
+        <!-- Top 10 Credit Consuming Workflows -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h2 class="text-xl font-semibold mb-4">Top 10 Credit Consuming Workflows</h2>
+          <canvas id="workflows-credits-chart" height="300"></canvas>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Top 10 Longest Running Jobs -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h2 class="text-xl font-semibold mb-4">Top 10 Longest Running Jobs</h2>
+          <canvas id="longest-jobs-chart" height="300"></canvas>
+        </div>
+        
+        <!-- Credit Usage by Resource Class -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h2 class="text-xl font-semibold mb-4">Credit Usage by Resource Class</h2>
+          <canvas id="resource-class-chart" height="300"></canvas>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Daily/Weekly Credit Burn Rate -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h2 class="text-xl font-semibold mb-4">Credit Burn Rate</h2>
+          <div class="flex justify-end mb-2">
+            <button id="daily-toggle" class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-l-md hover:bg-blue-700">Daily</button>
+            <button id="weekly-toggle" class="px-3 py-1 bg-gray-200 text-gray-700 text-sm font-medium rounded-r-md hover:bg-gray-300">Weekly</button>
+          </div>
+          <canvas id="burn-rate-chart" height="300"></canvas>
+        </div>
+        
+        <!-- Top 10 Failed Jobs by Credit Cost -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h2 class="text-xl font-semibold mb-4">Top 10 Failed Jobs by Credit Cost</h2>
+          <canvas id="failed-jobs-chart" height="300"></canvas>
+        </div>
+      </div>
+
+      <!-- Download Report Button -->
+      <div class="flex justify-center mt-6 mb-12">
+        <button id="download-report" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Download Detailed Report (CSV)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let parsedData = [];
+    let projectsCreditsChart = null;
+    let workflowsCreditsChart = null;
+    let longestJobsChart = null;
+    let resourceClassChart = null;
+    let burnRateChart = null;
+    let failedJobsChart = null;
+    let showDaily = true;
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set up file input listener
+      document.getElementById('csv-file').addEventListener('change', handleFileUpload);
+      
+      // Set up burn rate toggle buttons
+      document.getElementById('daily-toggle').addEventListener('click', function() {
+        showDaily = true;
+        updateBurnRateToggle();
+        if (parsedData.length > 0) {
+          updateBurnRateChart();
+        }
+      });
+      
+      document.getElementById('weekly-toggle').addEventListener('click', function() {
+        showDaily = false;
+        updateBurnRateToggle();
+        if (parsedData.length > 0) {
+          updateBurnRateChart();
+        }
+      });
+      
+      // Set up download button
+      document.getElementById('download-report').addEventListener('click', downloadReport);
+    });
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // Show loading state
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('results').classList.add('hidden');
+      document.getElementById('error-message').classList.add('hidden');
+      
+      // Parse CSV file
+      Papa.parse(file, {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          if (results.data.length === 0 || !results.meta.fields) {
+            showError("The file appears to be empty or invalid");
+            return;
+          }
+          
+          // Validate required columns
+          const requiredColumns = [
+            'PROJECT_NAME', 'JOB_NAME', 'WORKFLOW_NAME', 'RESOURCE_CLASS',
+            'JOB_BUILD_STATUS', 'JOB_RUN_SECONDS', 'TOTAL_CREDITS',
+            'JOB_RUN_DATE', 'PIPELINE_CREATED_AT'
+          ];
+          
+          const missingColumns = requiredColumns.filter(col => !results.meta.fields.includes(col));
+          
+          if (missingColumns.length > 0) {
+            showError(`Missing required columns: ${missingColumns.join(', ')}`);
+            return;
+          }
+          
+          // Process data
+          parsedData = cleanData(results.data);
+          analyzeData();
+          
+          // Hide loading state
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('results').classList.remove('hidden');
+        },
+        error: function(error) {
+          showError(`Error parsing CSV: ${error.message}`);
+        }
+      });
+    }
+
+    function cleanData(data) {
+      return data.map(row => {
+        // Convert string percentages to numbers if needed
+        if (typeof row.JOB_RUN_SECONDS === 'string') {
+          row.JOB_RUN_SECONDS = parseFloat(row.JOB_RUN_SECONDS);
+        }
+        if (typeof row.TOTAL_CREDITS === 'string') {
+          row.TOTAL_CREDITS = parseFloat(row.TOTAL_CREDITS);
+        }
+        
+        // Ensure date fields are parsed correctly
+        if (row.JOB_RUN_DATE && typeof row.JOB_RUN_DATE === 'string') {
+          row.JOB_RUN_DATE = new Date(row.JOB_RUN_DATE);
+        }
+        if (row.PIPELINE_CREATED_AT && typeof row.PIPELINE_CREATED_AT === 'string') {
+          row.PIPELINE_CREATED_AT = new Date(row.PIPELINE_CREATED_AT);
+        }
+        
+        return row;
+      }).filter(row => {
+        // Filter out rows with missing essential data
+        return row.PROJECT_NAME && 
+               row.JOB_NAME && 
+               row.WORKFLOW_NAME &&
+               !isNaN(row.TOTAL_CREDITS) &&
+               !isNaN(row.JOB_RUN_SECONDS) &&
+               row.JOB_BUILD_STATUS;
+      });
+    }
+
+    function analyzeData() {
+      // Update summary statistics
+      updateSummaryStats();
+      
+      // Update all charts
+      updateProjectsCreditsChart();
+      updateWorkflowsCreditsChart();
+      updateLongestJobsChart();
+      updateResourceClassChart();
+      updateBurnRateChart();
+      updateFailedJobsChart();
+    }
+
+    function updateSummaryStats() {
+      // Total jobs
+      document.getElementById('total-jobs').textContent = parsedData.length.toLocaleString();
+      
+      // Total credits
+      const totalCredits = parsedData.reduce((sum, job) => sum + (job.TOTAL_CREDITS || 0), 0);
+      document.getElementById('total-credits').textContent = totalCredits.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
+      
+      // Success rate
+      const successfulJobs = parsedData.filter(job => job.JOB_BUILD_STATUS === 'success').length;
+      const successRate = (successfulJobs / parsedData.length) * 100;
+      document.getElementById('success-rate').textContent = successRate.toFixed(1) + '%';
+      
+      // Average duration
+      const avgDuration = _.meanBy(parsedData, 'JOB_RUN_SECONDS');
+      document.getElementById('avg-duration').textContent = formatDuration(avgDuration);
+    }
+
+    function updateProjectsCreditsChart() {
+      const ctx = document.getElementById('projects-credits-chart').getContext('2d');
+      
+      // Calculate credits by project
+      const creditsByProject = {};
+      parsedData.forEach(job => {
+        creditsByProject[job.PROJECT_NAME] = (creditsByProject[job.PROJECT_NAME] || 0) + job.TOTAL_CREDITS;
+      });
+      
+      // Sort and take top 10
+      const sortedProjects = Object.entries(creditsByProject)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+      
+      const labels = sortedProjects.map(entry => entry[0]);
+      const data = sortedProjects.map(entry => entry[1]);
+      
+      // Destroy existing chart if it exists
+      if (projectsCreditsChart) {
+        projectsCreditsChart.destroy();
+      }
+      
+      // Create new chart
+      projectsCreditsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Credits Used',
+            data: data,
+            backgroundColor: 'rgba(59, 130, 246, 0.6)',
+            borderColor: 'rgba(59, 130, 246, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Credits: ${context.raw.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  })}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateWorkflowsCreditsChart() {
+      const ctx = document.getElementById('workflows-credits-chart').getContext('2d');
+      
+      // Calculate credits by workflow (with project name)
+      const creditsByWorkflow = {};
+      parsedData.forEach(job => {
+        const key = `${job.WORKFLOW_NAME} (${job.PROJECT_NAME})`;
+        creditsByWorkflow[key] = (creditsByWorkflow[key] || 0) + job.TOTAL_CREDITS;
+      });
+      
+      // Sort and take top 10
+      const sortedWorkflows = Object.entries(creditsByWorkflow)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+      
+      const labels = sortedWorkflows.map(entry => entry[0]);
+      const data = sortedWorkflows.map(entry => entry[1]);
+      
+      // Destroy existing chart if it exists
+      if (workflowsCreditsChart) {
+        workflowsCreditsChart.destroy();
+      }
+      
+      // Create new chart
+      workflowsCreditsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Credits Used',
+            data: data,
+            backgroundColor: 'rgba(16, 185, 129, 0.6)',
+            borderColor: 'rgba(16, 185, 129, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Credits: ${context.raw.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  })}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateLongestJobsChart() {
+      const ctx = document.getElementById('longest-jobs-chart').getContext('2d');
+      
+      // Calculate average duration by job
+      const jobDurations = {};
+      const jobCounts = {};
+      
+      parsedData.forEach(job => {
+        const key = `${job.JOB_NAME} (${job.PROJECT_NAME})`;
+        if (!jobDurations[key]) {
+          jobDurations[key] = 0;
+          jobCounts[key] = 0;
+        }
+        jobDurations[key] += job.JOB_RUN_SECONDS;
+        jobCounts[key] += 1;
+      });
+      
+      // Calculate averages
+      const avgDurations = {};
+      Object.keys(jobDurations).forEach(key => {
+        avgDurations[key] = jobDurations[key] / jobCounts[key];
+      });
+      
+      // Sort and take top 10
+      const sortedJobs = Object.entries(avgDurations)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+      
+      const labels = sortedJobs.map(entry => entry[0]);
+      const data = sortedJobs.map(entry => entry[1]);
+      
+      // Destroy existing chart if it exists
+      if (longestJobsChart) {
+        longestJobsChart.destroy();
+      }
+      
+      // Create new chart
+      longestJobsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Average Duration (seconds)',
+            data: data,
+            backgroundColor: 'rgba(124, 58, 237, 0.6)',
+            borderColor: 'rgba(124, 58, 237, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Avg. Duration: ${formatDuration(context.raw)}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateResourceClassChart() {
+      const ctx = document.getElementById('resource-class-chart').getContext('2d');
+      
+      // Calculate credits by resource class
+      const creditsByClass = {};
+      parsedData.forEach(job => {
+        creditsByClass[job.RESOURCE_CLASS] = (creditsByClass[job.RESOURCE_CLASS] || 0) + job.TOTAL_CREDITS;
+      });
+      
+      // Sort by credits
+      const sortedClasses = Object.entries(creditsByClass)
+        .sort((a, b) => b[1] - a[1]);
+      
+      const labels = sortedClasses.map(entry => entry[0]);
+      const data = sortedClasses.map(entry => entry[1]);
+      
+      // Destroy existing chart if it exists
+      if (resourceClassChart) {
+        resourceClassChart.destroy();
+      }
+      
+      // Create new chart
+      resourceClassChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Credits Used',
+            data: data,
+            backgroundColor: 'rgba(245, 158, 11, 0.6)',
+            borderColor: 'rgba(245, 158, 11, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Credits: ${context.raw.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  })}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateBurnRateChart() {
+      const ctx = document.getElementById('burn-rate-chart').getContext('2d');
+      
+      // Prepare data by date
+      let creditsByDate = {};
+      
+      if (showDaily) {
+        // Daily burn rate
+        parsedData.forEach(job => {
+          if (!job.JOB_RUN_DATE) return;
+          
+          const dateStr = job.JOB_RUN_DATE instanceof Date ? 
+            formatDate(job.JOB_RUN_DATE) : 
+            (typeof job.JOB_RUN_DATE === 'string' ? job.JOB_RUN_DATE : null);
+          
+          if (dateStr) {
+            creditsByDate[dateStr] = (creditsByDate[dateStr] || 0) + job.TOTAL_CREDITS;
+          }
+        });
+      } else {
+        // Weekly burn rate
+        parsedData.forEach(job => {
+          if (!job.JOB_RUN_DATE) return;
+          
+          const date = job.JOB_RUN_DATE instanceof Date ? 
+            job.JOB_RUN_DATE : 
+            (typeof job.JOB_RUN_DATE === 'string' ? new Date(job.JOB_RUN_DATE) : null);
+          
+          if (date) {
+            const weekStart = getWeekStart(date);
+            const weekStr = formatDate(weekStart);
+            creditsByDate[weekStr] = (creditsByDate[weekStr] || 0) + job.TOTAL_CREDITS;
+          }
+        });
+      }
+      
+      // Sort dates
+      const sortedDates = Object.keys(creditsByDate).sort();
+      const data = sortedDates.map(date => creditsByDate[date]);
+      
+      // Destroy existing chart if it exists
+      if (burnRateChart) {
+        burnRateChart.destroy();
+      }
+      
+      // Create new chart
+      burnRateChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: sortedDates,
+          datasets: [{
+            label: showDaily ? 'Daily Credits' : 'Weekly Credits',
+            data: data,
+            backgroundColor: 'rgba(6, 182, 212, 0.2)',
+            borderColor: 'rgba(6, 182, 212, 1)',
+            borderWidth: 2,
+            tension: 0.1,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Credits: ${context.raw.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  })}`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Credits Used'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateFailedJobsChart() {
+      const ctx = document.getElementById('failed-jobs-chart').getContext('2d');
+      
+      // Get failed jobs
+      const failedJobs = parsedData.filter(job => job.JOB_BUILD_STATUS === 'failed');
+      
+      // Calculate credits by job
+      const creditsByJob = {};
+      failedJobs.forEach(job => {
+        const key = `${job.JOB_NAME} (${job.PROJECT_NAME})`;
+        creditsByJob[key] = (creditsByJob[key] || 0) + job.TOTAL_CREDITS;
+      });
+      
+      // Sort and take top 10
+      const sortedJobs = Object.entries(creditsByJob)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+      
+      const labels = sortedJobs.map(entry => entry[0]);
+      const data = sortedJobs.map(entry => entry[1]);
+      
+      // Destroy existing chart if it exists
+      if (failedJobsChart) {
+        failedJobsChart.destroy();
+      }
+      
+      // Create new chart
+      failedJobsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Credits Wasted',
+            data: data,
+            backgroundColor: 'rgba(239, 68, 68, 0.6)',
+            borderColor: 'rgba(239, 68, 68, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Credits: ${context.raw.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  })}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateBurnRateToggle() {
+      if (showDaily) {
+        document.getElementById('daily-toggle').classList.remove('bg-gray-200', 'text-gray-700');
+        document.getElementById('daily-toggle').classList.add('bg-blue-600', 'text-white');
+        document.getElementById('weekly-toggle').classList.remove('bg-blue-600', 'text-white');
+        document.getElementById('weekly-toggle').classList.add('bg-gray-200', 'text-gray-700');
+      } else {
+        document.getElementById('weekly-toggle').classList.remove('bg-gray-200', 'text-gray-700');
+        document.getElementById('weekly-toggle').classList.add('bg-blue-600', 'text-white');
+        document.getElementById('daily-toggle').classList.remove('bg-blue-600', 'text-white');
+        document.getElementById('daily-toggle').classList.add('bg-gray-200', 'text-gray-700');
+      }
+    }
+
+    function downloadReport() {
+      // Create summary data by project
+      const projectSummary = {};
+      
+      parsedData.forEach(job => {
+        if (!projectSummary[job.PROJECT_NAME]) {
+          projectSummary[job.PROJECT_NAME] = {
+            project_name: job.PROJECT_NAME,
+            total_credits: 0,
+            total_jobs: 0,
+            successful_jobs: 0,
+            failed_jobs: 0,
+            total_run_time: 0,
+            avg_job_time: 0,
+            top_resource_class: '',
+            resource_class_credits: 0
+          };
+        }
+        
+        const summary = projectSummary[job.PROJECT_NAME];
+        summary.total_credits += job.TOTAL_CREDITS;
+        summary.total_jobs += 1;
+        if (job.JOB_BUILD_STATUS === 'success') {
+          summary.successful_jobs += 1;
+        } else if (job.JOB_BUILD_STATUS === 'failed') {
+          summary.failed_jobs += 1;
+        }
+        summary.total_run_time += job.JOB_RUN_SECONDS;
+        
+        // Track resource class usage
+        const resourceKey = `resource_class_${job.RESOURCE_CLASS}`;
+        if (!summary[resourceKey]) {
+          summary[resourceKey] = 0;
+        }
+        summary[resourceKey] += job.TOTAL_CREDITS;
+        
+        if (summary[resourceKey] > summary.resource_class_credits) {
+          summary.top_resource_class = job.RESOURCE_CLASS;
+          summary.resource_class_credits = summary[resourceKey];
+        }
+      });
+      
+      // Calculate averages
+      Object.values(projectSummary).forEach(summary => {
+        summary.avg_job_time = summary.total_run_time / summary.total_jobs;
+        summary.success_rate = (summary.successful_jobs / summary.total_jobs) * 100;
+        
+        // Format for CSV
+        summary.avg_job_time = summary.avg_job_time.toFixed(1);
+        summary.success_rate = summary.success_rate.toFixed(1) + '%';
+        summary.total_credits = summary.total_credits.toFixed(0);
+      });
+      
+      // Convert to array
+      const reportData = Object.values(projectSummary);
+      
+      // Sort by total credits
+      reportData.sort((a, b) => parseFloat(b.total_credits) - parseFloat(a.total_credits));
+      
+      // Convert to CSV
+      const csv = Papa.unparse(reportData);
+      
+      // Create download link
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'circleci-insights-report.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function formatDuration(seconds) {
+      if (!seconds) return '—';
+      
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainingSeconds = Math.floor(seconds % 60);
+      
+      if (hours > 0) {
+        return `${hours}h ${minutes}m ${remainingSeconds}s`;
+      } else if (minutes > 0) {
+        return `${minutes}m ${remainingSeconds}s`;
+      } else {
+        return `${remainingSeconds}s`;
+      }
+    }
+
+    function formatDate(date) {
+      if (!date) return '';
+      const d = new Date(date);
+      return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+    }
+
+    function getWeekStart(date) {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+      return new Date(d.setDate(diff));
+    }
+
+    function showError(message) {
+      const errorElement = document.getElementById('error-message');
+      errorElement.textContent = message;
+      errorElement.classList.remove('hidden');
+      document.getElementById('loading').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
