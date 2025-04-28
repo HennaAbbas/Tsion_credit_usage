@@ -113,7 +113,7 @@
                 <div class="text-gray-500 text-xs">ALL BRANCHES</div>
               </div>
               <div class="text-center">
-                <div id="total-workflows" class="font-semibold text-gray-900 mt-3" style="font-size: 5rem;">0</div>
+                <div id="total-workflows" class="font-semibold text-gray-900 mt-3" style="font-size: 2.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">0</div>
               </div>
             </div>
           </div>
@@ -124,7 +124,7 @@
                 <div class="text-gray-500 text-xs">ALL BRANCHES</div>
               </div>
               <div class="text-center">
-                <div id="avg-workflow-duration" class="font-semibold text-gray-900 mt-3" style="font-size: 5rem;">0</div>
+                <div id="avg-workflow-duration" class="font-semibold text-gray-900 mt-3" style="font-size: 2.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">0</div>
               </div>
             </div>
           </div>
@@ -135,7 +135,7 @@
                 <div class="text-gray-500 text-xs">ALL BRANCHES</div>
               </div>
               <div class="text-center">
-                <div id="workflow-success-rate" class="font-semibold text-gray-900 mt-3" style="font-size: 5rem;">0%</div>
+                <div id="workflow-success-rate" class="font-semibold text-gray-900 mt-3" style="font-size: 2.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">0%</div>
               </div>
             </div>
           </div>
@@ -146,7 +146,7 @@
                 <div class="text-gray-500 text-xs">ALL BRANCHES</div>
               </div>
               <div class="text-center">
-                <div id="mttr-all" class="font-semibold text-gray-900 mt-3" style="font-size: 5rem;">0</div>
+                <div id="mttr-all" class="font-semibold text-gray-900 mt-3" style="font-size: 2.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">0</div>
               </div>
             </div>
           </div>
@@ -159,27 +159,29 @@
           <h2 class="text-xl font-semibold mb-4">Credit Usage by Resource Class</h2>
           <canvas id="resource-class-chart" height="300"></canvas>
         </div>
-
         
-       <!-- Actionable Insights Section -->
-      <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Actionable Insights</h2>       
         <!-- Top 10 Failed Jobs by Credit Cost -->
         <div class="p-6 bg-white rounded-lg shadow">
           <h2 class="text-xl font-semibold mb-4">Top 10 Failed Jobs by Credit Cost</h2>
           <canvas id="failed-jobs-chart" height="300"></canvas>
         </div>
-
+      </div>
       
-
+      <!-- Actionable Insights Section -->
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Actionable Insights</h2>
         
         <!-- Top 10 Longest Running Jobs -->
         <div class="p-6 bg-white rounded-lg shadow mb-8">
           <h2 class="text-xl font-semibold mb-4">Top 10 Longest Running Jobs</h2>
           <canvas id="longest-jobs-chart" height="300"></canvas>
         </div>
-        
-
+      </div>
+      
+      <!-- Top 10 Failed Jobs by Credit Cost -->
+      <div class="p-6 bg-white rounded-lg shadow mb-8">
+        <h2 class="text-xl font-semibold mb-4">Top 10 Failed Jobs by Credit Cost</h2>
+        <canvas id="failed-jobs-chart" height="300"></canvas>
       </div>
 
       <!-- Download Report Button -->
@@ -201,6 +203,7 @@
     let burnRateChart = null;
     let jobsCreditsChart = null;
     let failedJobsChart = null;
+    let failedJobsChartNew = null;
     let showDaily = true;
     
     // Default branch name - change this as needed
