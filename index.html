@@ -942,7 +942,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'circleci-insights-report.csv');
+      link.setAttribute('download', 'circleci-usage-report.csv');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
