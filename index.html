@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CircleCI Insights Dashboard</title>
+  <title>CircleCI Usage Report</title>
   <!-- Include Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- PapaParse for CSV parsing -->
@@ -15,8 +15,13 @@
 </head>
 <body class="bg-gray-50">
   <div class="container mx-auto p-4">
+    <!-- Timeframe Banner -->
+    <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded-md">
+      <p class="font-medium">The data displayed reflects the timeframe selected in the uploaded dataset</p>
+    </div>
+    
     <header class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-800">CircleCI Insights Dashboard</h1>
+      <h1 class="text-3xl font-bold text-gray-800">CircleCI Usage Report</h1>
       <p class="text-gray-600 mt-2">Analyze your CircleCI usage patterns and cost distributions</p>
     </header>
 
@@ -63,6 +68,17 @@
           <p id="avg-duration" class="mt-1 text-2xl font-semibold text-gray-900">0s</p>
         </div>
       </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Daily/Weekly Credit Burn Rate -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h2 class="text-xl font-semibold mb-4">Credit Burn Rate</h2>
+          <div class="flex justify-end mb-2">
+            <button id="daily-toggle" class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-l-md hover:bg-blue-700">Daily</button>
+            <button id="weekly-toggle" class="px-3 py-1 bg-gray-200 text-gray-700 text-sm font-medium rounded-r-md hover:bg-gray-300">Weekly</button>
+          </div>
+          <canvas id="burn-rate-chart" height="300"></canvas>
+        </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <!-- Top 10 Credit Consuming Projects -->
@@ -82,34 +98,87 @@
         <h2 class="text-xl font-semibold mb-4">Top 10 Credit Consuming Jobs</h2>
         <canvas id="jobs-credits-chart" height="300"></canvas>
       </div>
+      
+      <!-- Software Delivery Metrics -->
+      <div class="mb-8" style="background-color: #f9fafb; border-radius: 8px; padding: 1.5rem;">
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Software Delivery Metrics</h2>
+        <p class="text-gray-600 mb-2">Aggregated Software Delivery Metrics across entire specified timeframe, starting at the first of the month.</p>
+        <p class="text-gray-600 mb-6 italic">The data displayed reflects the timeframe selected in the uploaded dataset.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="p-4 bg-white rounded-lg shadow-sm border-2 border-gray-200">
+            <div style="border: 2px solid #e5e7eb; padding: 10px; border-radius: 6px; margin-bottom: 4px;">
+              <div class="text-center">
+                <div class="text-gray-700 font-medium">Workflows Run</div>
+                <div class="text-gray-500 text-xs">ALL BRANCHES</div>
+              </div>
+              <div class="text-center">
+                <div id="total-workflows" class="font-semibold text-gray-900 mt-3" style="font-size: 5rem;">0</div>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 bg-white rounded-lg shadow-sm border-2 border-gray-200">
+            <div style="border: 2px solid #e5e7eb; padding: 10px; border-radius: 6px; margin-bottom: 4px;">
+              <div class="text-center">
+                <div class="text-gray-700 font-medium">Average Workflow Duration</div>
+                <div class="text-gray-500 text-xs">ALL BRANCHES</div>
+              </div>
+              <div class="text-center">
+                <div id="avg-workflow-duration" class="font-semibold text-gray-900 mt-3" style="font-size: 5rem;">0</div>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 bg-white rounded-lg shadow-sm border-2 border-gray-200">
+            <div style="border: 2px solid #e5e7eb; padding: 10px; border-radius: 6px; margin-bottom: 4px;">
+              <div class="text-center">
+                <div class="text-gray-700 font-medium">Workflow Success Rate</div>
+                <div class="text-gray-500 text-xs">ALL BRANCHES</div>
+              </div>
+              <div class="text-center">
+                <div id="workflow-success-rate" class="font-semibold text-gray-900 mt-3" style="font-size: 5rem;">0%</div>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 bg-white rounded-lg shadow-sm border-2 border-gray-200">
+            <div style="border: 2px solid #e5e7eb; padding: 10px; border-radius: 6px; margin-bottom: 4px;">
+              <div class="text-center">
+                <div class="text-gray-700 font-medium">MTTR (Mean)</div>
+                <div class="text-gray-500 text-xs">ALL BRANCHES</div>
+              </div>
+              <div class="text-center">
+                <div id="mttr-all" class="font-semibold text-gray-900 mt-3" style="font-size: 5rem;">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <!-- Top 10 Longest Running Jobs -->
-        <div class="p-6 bg-white rounded-lg shadow">
-          <h2 class="text-xl font-semibold mb-4">Top 10 Longest Running Jobs</h2>
-          <canvas id="longest-jobs-chart" height="300"></canvas>
-        </div>
-        
         <!-- Credit Usage by Resource Class -->
         <div class="p-6 bg-white rounded-lg shadow">
           <h2 class="text-xl font-semibold mb-4">Credit Usage by Resource Class</h2>
           <canvas id="resource-class-chart" height="300"></canvas>
         </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <!-- Daily/Weekly Credit Burn Rate -->
-        <div class="p-6 bg-white rounded-lg shadow">
-          <h2 class="text-xl font-semibold mb-4">Credit Burn Rate</h2>
-          <div class="flex justify-end mb-2">
-            <button id="daily-toggle" class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-l-md hover:bg-blue-700">Daily</button>
-            <button id="weekly-toggle" class="px-3 py-1 bg-gray-200 text-gray-700 text-sm font-medium rounded-r-md hover:bg-gray-300">Weekly</button>
-          </div>
-          <canvas id="burn-rate-chart" height="300"></canvas>
-        </div>
         
         <!-- Top 10 Failed Jobs by Credit Cost -->
         <div class="p-6 bg-white rounded-lg shadow">
+          <h2 class="text-xl font-semibold mb-4">Top 10 Failed Jobs by Credit Cost</h2>
+          <canvas id="failed-jobs-chart" height="300"></canvas>
+        </div>
+      </div>
+      
+      <!-- Actionable Insights Section -->
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Actionable Insights</h2>
+        
+        <!-- Top 10 Longest Running Jobs -->
+        <div class="p-6 bg-white rounded-lg shadow mb-8">
+          <h2 class="text-xl font-semibold mb-4">Top 10 Longest Running Jobs</h2>
+          <canvas id="longest-jobs-chart" height="300"></canvas>
+        </div>
+        
+        <!-- Top 10 Failed Jobs by Credit Cost -->
+        <div class="p-6 bg-white rounded-lg shadow mb-8">
           <h2 class="text-xl font-semibold mb-4">Top 10 Failed Jobs by Credit Cost</h2>
           <canvas id="failed-jobs-chart" height="300"></canvas>
         </div>
@@ -135,6 +204,9 @@
     let jobsCreditsChart = null;
     let failedJobsChart = null;
     let showDaily = true;
+    
+    // Default branch name - change this as needed
+    const defaultBranchName = "main";
 
     // Initialize the page
     document.addEventListener('DOMContentLoaded', function() {
@@ -186,7 +258,7 @@
           const requiredColumns = [
             'PROJECT_NAME', 'JOB_NAME', 'WORKFLOW_NAME', 'RESOURCE_CLASS',
             'JOB_BUILD_STATUS', 'JOB_RUN_SECONDS', 'TOTAL_CREDITS',
-            'JOB_RUN_DATE', 'PIPELINE_CREATED_AT'
+            'JOB_RUN_DATE', 'PIPELINE_CREATED_AT', 'VCS_BRANCH'
           ];
           
           const missingColumns = requiredColumns.filter(col => !results.meta.fields.includes(col));
@@ -228,6 +300,11 @@
           row.PIPELINE_CREATED_AT = new Date(row.PIPELINE_CREATED_AT);
         }
         
+        // Ensure VCS_BRANCH exists
+        if (!row.VCS_BRANCH) {
+          row.VCS_BRANCH = "unknown";
+        }
+        
         return row;
       }).filter(row => {
         // Filter out rows with missing essential data
@@ -244,6 +321,9 @@
       // Update summary statistics
       updateSummaryStats();
       
+      // Update software delivery metrics
+      updateSoftwareDeliveryMetrics();
+      
       // Update all charts
       updateProjectsCreditsChart();
       updateWorkflowsCreditsChart();
@@ -252,6 +332,69 @@
       updateJobsCreditsChart();
       updateBurnRateChart();
       updateFailedJobsChart();
+    }
+
+    function updateSoftwareDeliveryMetrics() {
+      // Calculate metrics for all workflows
+      const uniqueWorkflows = new Set();
+      const workflowDurations = [];
+      let successfulWorkflows = 0;
+      let failedWorkflows = 0;
+      let timeToRecoveryValues = [];
+      
+      // Group data by workflow ID to count unique workflows
+      const workflowGroups = _.groupBy(parsedData, job => `${job.PROJECT_NAME}-${job.WORKFLOW_NAME}-${job.PIPELINE_CREATED_AT}`);
+      
+      // Calculate metrics for each workflow
+      Object.entries(workflowGroups).forEach(([workflowKey, jobs]) => {
+        uniqueWorkflows.add(workflowKey);
+        
+        // Calculate workflow duration (max end time - min start time)
+        const startTimes = jobs.map(job => new Date(job.PIPELINE_CREATED_AT).getTime());
+        const endTimes = jobs.map(job => {
+          const startTime = new Date(job.PIPELINE_CREATED_AT).getTime();
+          return startTime + (job.JOB_RUN_SECONDS * 1000);
+        });
+        
+        const workflowStartTime = Math.min(...startTimes);
+        const workflowEndTime = Math.max(...endTimes);
+        const duration = (workflowEndTime - workflowStartTime) / 1000 / 60; // in minutes
+        workflowDurations.push(duration);
+        
+        // Determine if workflow was successful (all jobs succeeded)
+        const allSuccessful = jobs.every(job => job.JOB_BUILD_STATUS === 'success');
+        if (allSuccessful) {
+          successfulWorkflows++;
+        } else {
+          failedWorkflows++;
+        }
+      });
+      
+      // Calculate MTTR (Mean Time to Recovery)
+      const sortedJobs = _.sortBy(parsedData, 'PIPELINE_CREATED_AT');
+      let lastFailureTime = null;
+      
+      sortedJobs.forEach(job => {
+        if (job.JOB_BUILD_STATUS === 'failed') {
+          lastFailureTime = new Date(job.PIPELINE_CREATED_AT).getTime();
+        } else if (job.JOB_BUILD_STATUS === 'success' && lastFailureTime) {
+          const recoveryTime = new Date(job.PIPELINE_CREATED_AT).getTime() - lastFailureTime;
+          timeToRecoveryValues.push(recoveryTime / 1000 / 60); // in minutes
+          lastFailureTime = null;
+        }
+      });
+      
+      // Update UI with metrics for all branches
+      document.getElementById('total-workflows').textContent = uniqueWorkflows.size.toLocaleString();
+      document.getElementById('avg-workflow-duration').textContent = workflowDurations.length > 0 
+        ? (_.mean(workflowDurations)).toFixed(2) 
+        : '0';
+      document.getElementById('workflow-success-rate').textContent = (uniqueWorkflows.size > 0)
+        ? `${Math.round((successfulWorkflows / uniqueWorkflows.size) * 100)}%`
+        : '0%';
+      document.getElementById('mttr-all').textContent = timeToRecoveryValues.length > 0
+        ? Math.round(_.mean(timeToRecoveryValues))
+        : '0';
     }
 
     function updateSummaryStats() {
