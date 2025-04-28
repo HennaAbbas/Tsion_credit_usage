@@ -70,15 +70,6 @@
       </div>
       
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <!-- Daily/Weekly Credit Burn Rate -->
-        <div class="p-6 bg-white rounded-lg shadow">
-          <h2 class="text-xl font-semibold mb-4">Credit Burn Rate</h2>
-          <div class="flex justify-end mb-2">
-            <button id="daily-toggle" class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-l-md hover:bg-blue-700">Daily</button>
-            <button id="weekly-toggle" class="px-3 py-1 bg-gray-200 text-gray-700 text-sm font-medium rounded-r-md hover:bg-gray-300">Weekly</button>
-          </div>
-          <canvas id="burn-rate-chart" height="300"></canvas>
-        </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <!-- Top 10 Credit Consuming Projects -->
@@ -98,6 +89,16 @@
         <h2 class="text-xl font-semibold mb-4">Top 10 Credit Consuming Jobs</h2>
         <canvas id="jobs-credits-chart" height="300"></canvas>
       </div>
+
+        <!-- Daily/Weekly Credit Burn Rate -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h2 class="text-xl font-semibold mb-4">Credit Burn Rate</h2>
+          <div class="flex justify-end mb-2">
+            <button id="daily-toggle" class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-l-md hover:bg-blue-700">Daily</button>
+            <button id="weekly-toggle" class="px-3 py-1 bg-gray-200 text-gray-700 text-sm font-medium rounded-r-md hover:bg-gray-300">Weekly</button>
+          </div>
+          <canvas id="burn-rate-chart" height="300"></canvas>
+        </div>        
       
       <!-- Software Delivery Metrics -->
       <div class="mb-8" style="background-color: #f9fafb; border-radius: 8px; padding: 1.5rem;">
