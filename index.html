@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CircleCI Usage Report</title>
+  <title>CircleCI Usage Report with Resource Utilization Analysis</title>
   <!-- Include Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- PapaParse for CSV parsing -->
@@ -22,7 +22,7 @@
     
     <header class="mb-8">
       <h1 class="text-3xl font-bold text-gray-800">CircleCI Usage Report</h1>
-      <p class="text-gray-600 mt-2">Analyze your CircleCI usage patterns and cost distributions</p>
+      <p class="text-gray-600 mt-2">Analyze your CircleCI usage patterns, cost distributions, and resource utilization</p>
     </header>
 
     <div id="file-upload" class="mb-8 p-6 bg-white rounded-lg shadow">
@@ -69,6 +69,71 @@
         </div>
       </div>
       
+      <!-- NEW: Resource Utilization Insights -->
+      <div class="mb-8 p-6 bg-white rounded-lg shadow" id="resource-utilization-section">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Resource Utilization Insights</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="p-4 bg-blue-50 rounded-lg shadow-sm">
+            <h3 class="text-lg font-medium text-blue-700">Underutilized Jobs</h3>
+            <p id="underutilized-count" class="mt-1 text-3xl font-semibold text-blue-900">0</p>
+            <p class="text-sm text-blue-600 mt-1">Jobs with CPU & RAM utilization ≤ 40%</p>
+          </div>
+          <div class="p-4 bg-green-50 rounded-lg shadow-sm">
+            <h3 class="text-lg font-medium text-green-700">Potential Credit Savings</h3>
+            <p id="potential-savings" class="mt-1 text-3xl font-semibold text-green-900">0</p>
+            <p class="text-sm text-green-600 mt-1">Estimated credits that could be saved by right-sizing</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+          <!-- CPU Utilization Distribution -->
+          <div class="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <h3 class="text-lg font-medium text-gray-700 mb-2">CPU Utilization Distribution</h3>
+            <canvas id="cpu-utilization-chart" height="250"></canvas>
+          </div>
+          
+          <!-- RAM Utilization Distribution -->
+          <div class="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <h3 class="text-lg font-medium text-gray-700 mb-2">RAM Utilization Distribution</h3>
+            <canvas id="ram-utilization-chart" height="250"></canvas>
+          </div>
+        </div>
+        
+        <!-- Top 10 Underutilized Jobs -->
+        <div class="mb-6">
+          <h3 class="text-lg font-medium text-gray-700 mb-2">Top 10 Underutilized Jobs (By Total Credits)</h3>
+          <div id="no-underutilized-message" class="hidden p-4 bg-gray-50 rounded-md text-gray-600">
+            No jobs found with both CPU and RAM utilization ≤ 40%.
+          </div>
+          <div class="overflow-x-auto">
+            <table id="underutilized-jobs-table" class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Name</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resource Class</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. CPU %</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. RAM %</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Credits</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Class</th>
+                </tr>
+              </thead>
+              <tbody id="underutilized-jobs-body" class="bg-white divide-y divide-gray-200">
+                <!-- Table will be populated by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Download Underutilized Jobs Button -->
+        <div class="flex justify-end">
+          <button id="download-utilization-report" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            Download Utilization Report (CSV)
+          </button>
+        </div>
+      </div>
+      
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <!-- Top 10 Credit Consuming Projects -->
         <div class="p-6 bg-white rounded-lg shadow">
@@ -88,91 +153,33 @@
         <canvas id="jobs-credits-chart" height="300"></canvas>
       </div>
 
-        <!-- Daily/Weekly Credit Burn Rate -->
-        <div class="p-6 bg-white rounded-lg shadow">
-          <h2 class="text-xl font-semibold mb-4">Credit Burn Rate</h2>
-          <div class="flex justify-end mb-2">
-            <button id="daily-toggle" class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-l-md hover:bg-blue-700">Daily</button>
-            <button id="weekly-toggle" class="px-3 py-1 bg-gray-200 text-gray-700 text-sm font-medium rounded-r-md hover:bg-gray-300">Weekly</button>
-          </div>
-          <canvas id="burn-rate-chart" height="300"></canvas>
-        </div> 
-
-      
-        <!-- Credit Usage by Resource Class -->
-        <div class="p-6 bg-white rounded-lg shadow">
-          <h2 class="text-xl font-semibold mb-4">Credit Usage by Resource Class</h2>
-          <canvas id="resource-class-chart" height="300"></canvas>
-        </div>      
-      
-      <!-- Software Delivery Metrics -->
-      <div class="mb-8" style="background-color: #f9fafb; border-radius: 8px; padding: 1.5rem;">
-        <h2 class="text-2xl font-bold text-gray-800 mb-2">Software Delivery Metrics</h2>
-        <p class="text-gray-600 mb-2">Aggregated Software Delivery Metrics across entire specified timeframe, starting at the first of the month.</p>
-        <p class="text-gray-600 mb-6 italic">The data displayed reflects the timeframe selected in the uploaded dataset.</p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div class="p-4 bg-white rounded-lg shadow-sm border-2 border-gray-200">
-            <div style="border: 2px solid #e5e7eb; padding: 10px; border-radius: 6px; margin-bottom: 4px;">
-              <div class="text-center">
-                <div class="text-gray-700 font-medium">Workflows Run</div>
-                <div class="text-gray-500 text-xs">ALL BRANCHES</div>
-              </div>
-              <div class="text-center">
-                <div id="total-workflows" class="font-semibold text-gray-900 mt-3" style="font-size: 1.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">0</div>
-              </div>
-            </div>
-          </div>
-          <div class="p-4 bg-white rounded-lg shadow-sm border-2 border-gray-200">
-            <div style="border: 2px solid #e5e7eb; padding: 10px; border-radius: 6px; margin-bottom: 4px;">
-              <div class="text-center">
-                <div class="text-gray-700 font-medium">Average Workflow Duration</div>
-                <div class="text-gray-500 text-xs">ALL BRANCHES</div>
-              </div>
-              <div class="text-center">
-                <div id="avg-workflow-duration" class="font-semibold text-gray-900 mt-3" style="font-size: 1.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">0</div>
-              </div>
-            </div>
-          </div>
-          <div class="p-4 bg-white rounded-lg shadow-sm border-2 border-gray-200">
-            <div style="border: 2px solid #e5e7eb; padding: 10px; border-radius: 6px; margin-bottom: 4px;">
-              <div class="text-center">
-                <div class="text-gray-700 font-medium">Workflow Success Rate</div>
-                <div class="text-gray-500 text-xs">ALL BRANCHES</div>
-              </div>
-              <div class="text-center">
-                <div id="workflow-success-rate" class="font-semibold text-gray-900 mt-3" style="font-size: 1.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">0%</div>
-              </div>
-            </div>
-          </div>
-          <div class="p-4 bg-white rounded-lg shadow-sm border-2 border-gray-200">
-            <div style="border: 2px solid #e5e7eb; padding: 10px; border-radius: 6px; margin-bottom: 4px;">
-              <div class="text-center">
-                <div class="text-gray-700 font-medium">MTTR (Mean)</div>
-                <div class="text-gray-500 text-xs">ALL BRANCHES</div>
-              </div>
-              <div class="text-center">
-                <div id="mttr-all" class="font-semibold text-gray-900 mt-3" style="font-size: 1.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">0</div>
-              </div>
-            </div>
-          </div>
+      <!-- Daily/Weekly Credit Burn Rate -->
+      <div class="p-6 bg-white rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-4">Credit Burn Rate</h2>
+        <div class="flex justify-end mb-2">
+          <button id="daily-toggle" class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-l-md hover:bg-blue-700">Daily</button>
+          <button id="weekly-toggle" class="px-3 py-1 bg-gray-200 text-gray-700 text-sm font-medium rounded-r-md hover:bg-gray-300">Weekly</button>
         </div>
+        <canvas id="burn-rate-chart" height="300"></canvas>
       </div>
-
+      
+      <!-- Credit Usage by Resource Class -->
+      <div class="p-6 bg-white rounded-lg shadow mt-8">
+        <h2 class="text-xl font-semibold mb-4">Credit Usage by Resource Class</h2>
+        <canvas id="resource-class-chart" height="300"></canvas>
+      </div>      
+      
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-
-      <!-- Actionable Insights Section -->
-      <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Actionable Insights</h2>
-
-        
-        <!-- Top 10 Failed Jobs by Credit Cost -->
-        <div class="p-6 bg-white rounded-lg shadow">
-          <h2 class="text-xl font-semibold mb-4">Top 10 Failed Jobs by Credit Cost</h2>
-          <canvas id="failed-jobs-chart" height="300"></canvas>
+        <!-- Actionable Insights Section -->
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold text-gray-800 mb-4">Actionable Insights</h2>
+          
+          <!-- Top 10 Failed Jobs by Credit Cost -->
+          <div class="p-6 bg-white rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Top 10 Failed Jobs by Credit Cost</h2>
+            <canvas id="failed-jobs-chart" height="300"></canvas>
+          </div>
         </div>
-      </div>
-      
         
         <!-- Top 10 Longest Running Jobs -->
         <div class="p-6 bg-white rounded-lg shadow mb-8">
@@ -180,8 +187,6 @@
           <canvas id="longest-jobs-chart" height="300"></canvas>
         </div>
       </div>
-      
-
 
       <!-- Download Report Button -->
       <div class="flex justify-center mt-6 mb-12">
@@ -202,8 +207,12 @@
     let burnRateChart = null;
     let jobsCreditsChart = null;
     let failedJobsChart = null;
-    let failedJobsChartNew = null;
+    let cpuUtilizationChart = null;
+    let ramUtilizationChart = null;
     let showDaily = true;
+    
+    // Resource utilization threshold (40%)
+    const UTILIZATION_THRESHOLD = 40;
     
     // Default branch name - change this as needed
     const defaultBranchName = "main";
@@ -230,8 +239,9 @@
         }
       });
       
-      // Set up download button
+      // Set up download buttons
       document.getElementById('download-report').addEventListener('click', downloadReport);
+      document.getElementById('download-utilization-report').addEventListener('click', downloadUtilizationReport);
     });
 
     function handleFileUpload(event) {
@@ -254,23 +264,40 @@
             return;
           }
           
-          // Validate required columns
+          // Basic required columns for the original functionality
           const requiredColumns = [
             'PROJECT_NAME', 'JOB_NAME', 'WORKFLOW_NAME', 'RESOURCE_CLASS',
             'JOB_BUILD_STATUS', 'JOB_RUN_SECONDS', 'TOTAL_CREDITS',
             'JOB_RUN_DATE', 'PIPELINE_CREATED_AT', 'VCS_BRANCH'
           ];
           
-          const missingColumns = requiredColumns.filter(col => !results.meta.fields.includes(col));
+          const missingBasicColumns = requiredColumns.filter(col => !results.meta.fields.includes(col));
           
-          if (missingColumns.length > 0) {
-            showError(`Missing required columns: ${missingColumns.join(', ')}`);
+          if (missingBasicColumns.length > 0) {
+            showError(`Missing required columns: ${missingBasicColumns.join(', ')}`);
             return;
           }
+          
+          // Check for resource utilization columns
+          const utilizationColumns = [
+            'MEDIAN_CPU_UTILIZATION_PCT', 'MEDIAN_RAM_UTILIZATION_PCT'
+          ];
+          
+          const missingUtilizationColumns = utilizationColumns.filter(col => !results.meta.fields.includes(col));
           
           // Process data
           parsedData = cleanData(results.data);
           analyzeData();
+          
+          // Show/hide resource utilization section based on data availability
+          if (missingUtilizationColumns.length > 0) {
+            document.getElementById('resource-utilization-section').classList.add('hidden');
+            console.warn(`Missing utilization columns: ${missingUtilizationColumns.join(', ')}. Resource utilization analysis will be skipped.`);
+          } else {
+            document.getElementById('resource-utilization-section').classList.remove('hidden');
+            // Update resource utilization analysis
+            updateResourceUtilizationAnalysis();
+          }
           
           // Hide loading state
           document.getElementById('loading').classList.add('hidden');
@@ -290,6 +317,14 @@
         }
         if (typeof row.TOTAL_CREDITS === 'string') {
           row.TOTAL_CREDITS = parseFloat(row.TOTAL_CREDITS);
+        }
+        
+        // Clean utilization data
+        if (typeof row.MEDIAN_CPU_UTILIZATION_PCT === 'string') {
+          row.MEDIAN_CPU_UTILIZATION_PCT = parseFloat(row.MEDIAN_CPU_UTILIZATION_PCT);
+        }
+        if (typeof row.MEDIAN_RAM_UTILIZATION_PCT === 'string') {
+          row.MEDIAN_RAM_UTILIZATION_PCT = parseFloat(row.MEDIAN_RAM_UTILIZATION_PCT);
         }
         
         // Ensure date fields are parsed correctly
@@ -321,9 +356,6 @@
       // Update summary statistics
       updateSummaryStats();
       
-      // Update software delivery metrics
-      updateSoftwareDeliveryMetrics();
-      
       // Update all charts
       updateProjectsCreditsChart();
       updateWorkflowsCreditsChart();
@@ -334,67 +366,317 @@
       updateFailedJobsChart();
     }
 
-    function updateSoftwareDeliveryMetrics() {
-      // Calculate metrics for all workflows
-      const uniqueWorkflows = new Set();
-      const workflowDurations = [];
-      let successfulWorkflows = 0;
-      let failedWorkflows = 0;
-      let timeToRecoveryValues = [];
+    function updateResourceUtilizationAnalysis() {
+      // Identify underutilized jobs (both CPU and RAM <= 40%)
+      const underutilizedJobs = parsedData.filter(job => {
+        return job.MEDIAN_CPU_UTILIZATION_PCT <= UTILIZATION_THRESHOLD &&
+               job.MEDIAN_RAM_UTILIZATION_PCT <= UTILIZATION_THRESHOLD;
+      });
       
-      // Group data by workflow ID to count unique workflows
-      const workflowGroups = _.groupBy(parsedData, job => `${job.PROJECT_NAME}-${job.WORKFLOW_NAME}-${job.PIPELINE_CREATED_AT}`);
+      // Update underutilized count
+      document.getElementById('underutilized-count').textContent = underutilizedJobs.length.toLocaleString();
       
-      // Calculate metrics for each workflow
-      Object.entries(workflowGroups).forEach(([workflowKey, jobs]) => {
-        uniqueWorkflows.add(workflowKey);
-        
-        // Calculate workflow duration (max end time - min start time)
-        const startTimes = jobs.map(job => new Date(job.PIPELINE_CREATED_AT).getTime());
-        const endTimes = jobs.map(job => {
-          const startTime = new Date(job.PIPELINE_CREATED_AT).getTime();
-          return startTime + (job.JOB_RUN_SECONDS * 1000);
-        });
-        
-        const workflowStartTime = Math.min(...startTimes);
-        const workflowEndTime = Math.max(...endTimes);
-        const duration = (workflowEndTime - workflowStartTime) / 1000 / 60; // in minutes
-        workflowDurations.push(duration);
-        
-        // Determine if workflow was successful (all jobs succeeded)
-        const allSuccessful = jobs.every(job => job.JOB_BUILD_STATUS === 'success');
-        if (allSuccessful) {
-          successfulWorkflows++;
-        } else {
-          failedWorkflows++;
+      // Calculate potential savings
+      // Assuming we could save ~50% of credits for underutilized jobs by right-sizing
+      const potentialSavings = Math.round(underutilizedJobs.reduce((sum, job) => sum + (job.TOTAL_CREDITS * 0.5), 0));
+      document.getElementById('potential-savings').textContent = potentialSavings.toLocaleString();
+      
+      // Update utilization distribution charts
+      updateUtilizationCharts();
+      
+      // Update underutilized jobs table
+      updateUnderutilizedJobsTable(underutilizedJobs);
+      
+      // Enable/disable download button
+      document.getElementById('download-utilization-report').disabled = underutilizedJobs.length === 0;
+    }
+
+    function updateUtilizationCharts() {
+      // CPU Utilization Distribution
+      updateUtilizationDistributionChart('cpu-utilization-chart', 'MEDIAN_CPU_UTILIZATION_PCT', 'CPU Utilization %', 'rgba(59, 130, 246, 0.6)', 'rgba(59, 130, 246, 1)');
+      
+      // RAM Utilization Distribution
+      updateUtilizationDistributionChart('ram-utilization-chart', 'MEDIAN_RAM_UTILIZATION_PCT', 'RAM Utilization %', 'rgba(16, 185, 129, 0.6)', 'rgba(16, 185, 129, 1)');
+    }
+
+    function updateUtilizationDistributionChart(chartId, dataField, label, backgroundColor, borderColor) {
+      const ctx = document.getElementById(chartId).getContext('2d');
+      
+      // Create distribution buckets (0-10%, 10-20%, etc.)
+      const buckets = [
+        { min: 0, max: 10, label: '0-10%' },
+        { min: 10, max: 20, label: '10-20%' },
+        { min: 20, max: 30, label: '20-30%' },
+        { min: 30, max: 40, label: '30-40%' },
+        { min: 40, max: 50, label: '40-50%' },
+        { min: 50, max: 60, label: '50-60%' },
+        { min: 60, max: 70, label: '60-70%' },
+        { min: 70, max: 80, label: '70-80%' },
+        { min: 80, max: 90, label: '80-90%' },
+        { min: 90, max: 100, label: '90-100%' }
+      ];
+      
+      // Count jobs in each bucket
+      const counts = Array(buckets.length).fill(0);
+      parsedData.forEach(job => {
+        const value = job[dataField];
+        if (value !== undefined && value !== null) {
+          for (let i = 0; i < buckets.length; i++) {
+            if (value > buckets[i].min && value <= buckets[i].max) {
+              counts[i]++;
+              break;
+            }
+            // Handle special case for 0
+            if (value === 0 && buckets[i].min === 0) {
+              counts[i]++;
+              break;
+            }
+          }
         }
       });
       
-      // Calculate MTTR (Mean Time to Recovery)
-      const sortedJobs = _.sortBy(parsedData, 'PIPELINE_CREATED_AT');
-      let lastFailureTime = null;
+      // Destroy existing chart if it exists
+      if (chartId === 'cpu-utilization-chart' && cpuUtilizationChart) {
+        cpuUtilizationChart.destroy();
+      } else if (chartId === 'ram-utilization-chart' && ramUtilizationChart) {
+        ramUtilizationChart.destroy();
+      }
       
-      sortedJobs.forEach(job => {
-        if (job.JOB_BUILD_STATUS === 'failed') {
-          lastFailureTime = new Date(job.PIPELINE_CREATED_AT).getTime();
-        } else if (job.JOB_BUILD_STATUS === 'success' && lastFailureTime) {
-          const recoveryTime = new Date(job.PIPELINE_CREATED_AT).getTime() - lastFailureTime;
-          timeToRecoveryValues.push(recoveryTime / 1000 / 60); // in minutes
-          lastFailureTime = null;
+      // Create new chart
+      const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: buckets.map(b => b.label),
+          datasets: [{
+            label: label,
+            data: counts,
+            backgroundColor: backgroundColor,
+            borderColor: borderColor,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Jobs: ${context.raw}`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Number of Jobs'
+              }
+            }
+          }
         }
       });
       
-      // Update UI with metrics for all branches
-      document.getElementById('total-workflows').textContent = uniqueWorkflows.size.toLocaleString();
-      document.getElementById('avg-workflow-duration').textContent = workflowDurations.length > 0 
-        ? (_.mean(workflowDurations)).toFixed(2) 
-        : '0';
-      document.getElementById('workflow-success-rate').textContent = (uniqueWorkflows.size > 0)
-        ? `${Math.round((successfulWorkflows / uniqueWorkflows.size) * 100)}%`
-        : '0%';
-      document.getElementById('mttr-all').textContent = timeToRecoveryValues.length > 0
-        ? Math.round(_.mean(timeToRecoveryValues))
-        : '0';
+      // Store chart reference
+      if (chartId === 'cpu-utilization-chart') {
+        cpuUtilizationChart = chart;
+      } else if (chartId === 'ram-utilization-chart') {
+        ramUtilizationChart = chart;
+      }
+    }
+
+    function updateUnderutilizedJobsTable(underutilizedJobs) {
+      const tableBody = document.getElementById('underutilized-jobs-body');
+      const noJobsMessage = document.getElementById('no-underutilized-message');
+      
+      // Clear existing rows
+      tableBody.innerHTML = '';
+      
+      if (underutilizedJobs.length === 0) {
+        // Show "no jobs" message
+        noJobsMessage.classList.remove('hidden');
+        document.getElementById('underutilized-jobs-table').classList.add('hidden');
+        return;
+      }
+      
+      // Hide "no jobs" message and show table
+      noJobsMessage.classList.add('hidden');
+      document.getElementById('underutilized-jobs-table').classList.remove('hidden');
+      
+      // Group underutilized jobs by name/project to calculate averages
+      const jobGroups = {};
+      underutilizedJobs.forEach(job => {
+        const key = `${job.JOB_NAME}|${job.PROJECT_NAME}|${job.RESOURCE_CLASS}`;
+        if (!jobGroups[key]) {
+          jobGroups[key] = {
+            job_name: job.JOB_NAME,
+            project_name: job.PROJECT_NAME,
+            resource_class: job.RESOURCE_CLASS,
+            total_credits: 0,
+            cpuValues: [],
+            ramValues: [],
+            count: 0
+          };
+        }
+        
+        jobGroups[key].total_credits += job.TOTAL_CREDITS;
+        jobGroups[key].cpuValues.push(job.MEDIAN_CPU_UTILIZATION_PCT);
+        jobGroups[key].ramValues.push(job.MEDIAN_RAM_UTILIZATION_PCT);
+        jobGroups[key].count++;
+      });
+      
+      // Calculate averages
+      Object.values(jobGroups).forEach(group => {
+        group.avg_cpu = _.mean(group.cpuValues);
+        group.avg_ram = _.mean(group.ramValues);
+        
+        // Determine suggested resource class based on utilization
+        // This is a simple heuristic and should be adjusted based on your resource classes
+        group.suggested_class = getSuggestedResourceClass(group.resource_class, group.avg_cpu, group.avg_ram);
+      });
+      
+      // Sort by total credits (highest first) and get top 10
+      const sortedGroups = Object.values(jobGroups)
+        .sort((a, b) => b.total_credits - a.total_credits)
+        .slice(0, 10);
+      
+      // Add rows to table
+      sortedGroups.forEach(group => {
+        const row = document.createElement('tr');
+        
+        // Add cells
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${group.job_name}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${group.project_name}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${group.resource_class}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${group.avg_cpu.toFixed(1)}%</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${group.avg_ram.toFixed(1)}%</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${group.total_credits.toFixed(0)}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm ${group.suggested_class !== group.resource_class ? 'text-green-600 font-medium' : 'text-gray-500'}">${group.suggested_class}</td>
+        `;
+        
+        tableBody.appendChild(row);
+      });
+    }
+
+    function getSuggestedResourceClass(currentClass, cpuUtil, ramUtil) {
+      // This is a placeholder function - in real implementation, you would adjust based on
+      // the specific CircleCI resource classes used in your organization
+      
+      // Standard CircleCI resource class patterns
+      // Docker: small, medium, large, xlarge, 2xlarge, 2xlarge+
+      // Linux VM: medium, large, xlarge, 2xlarge
+      // macOS: medium, large, xlarge, 2xlarge
+      // Windows: medium, large, xlarge, 2xlarge
+      // GPU: medium+, large, xlarge, 2xlarge
+      
+      // Only suggest downgrade if clearly underutilized
+      if (cpuUtil > 40 || ramUtil > 40) {
+        return currentClass;
+      }
+      
+      // Very underutilized resources
+      const isVeryUnderutilized = cpuUtil <= 30 && ramUtil <= 30;
+      
+      // For Docker and machine executors
+      if (currentClass.includes('2xlarge+')) {
+        return isVeryUnderutilized ? 'xlarge' : '2xlarge';
+      } else if (currentClass.includes('2xlarge')) {
+        return isVeryUnderutilized ? 'large' : 'xlarge';
+      } else if (currentClass.includes('xlarge')) {
+        return isVeryUnderutilized ? 'medium' : 'large';
+      } else if (currentClass.includes('large')) {
+        return 'medium';
+      } else if (currentClass.includes('medium+')) {
+        return 'medium';
+      } else if (currentClass.includes('medium')) {
+        return 'small';
+      }
+      
+      // If we can't determine a better class or already at smallest size
+      return currentClass;
+    }
+
+    function downloadUtilizationReport() {
+      // Identify underutilized jobs
+      const underutilizedJobs = parsedData.filter(job => {
+        return job.MEDIAN_CPU_UTILIZATION_PCT <= UTILIZATION_THRESHOLD &&
+               job.MEDIAN_RAM_UTILIZATION_PCT <= UTILIZATION_THRESHOLD;
+      });
+      
+      if (underutilizedJobs.length === 0) {
+        alert('No underutilized jobs found.');
+        return;
+      }
+      
+      // Group by job name and project
+      const jobGroups = {};
+      underutilizedJobs.forEach(job => {
+        const key = `${job.JOB_NAME}|${job.PROJECT_NAME}|${job.RESOURCE_CLASS}`;
+        if (!jobGroups[key]) {
+          jobGroups[key] = {
+            job_name: job.JOB_NAME,
+            project_name: job.PROJECT_NAME,
+            workflow_name: job.WORKFLOW_NAME,
+            resource_class: job.RESOURCE_CLASS,
+            total_credits: 0,
+            total_runs: 0,
+            total_seconds: 0,
+            cpuValues: [],
+            ramValues: [],
+            suggested_class: ''
+          };
+        }
+        
+        jobGroups[key].total_credits += job.TOTAL_CREDITS;
+        jobGroups[key].total_runs += 1;
+        jobGroups[key].total_seconds += job.JOB_RUN_SECONDS;
+        jobGroups[key].cpuValues.push(job.MEDIAN_CPU_UTILIZATION_PCT);
+        jobGroups[key].ramValues.push(job.MEDIAN_RAM_UTILIZATION_PCT);
+      });
+      
+      // Calculate averages and suggested classes
+      const reportData = Object.values(jobGroups).map(group => {
+        const avg_cpu = _.mean(group.cpuValues);
+        const avg_ram = _.mean(group.ramValues);
+        const suggested_class = getSuggestedResourceClass(group.resource_class, avg_cpu, avg_ram);
+        const estimated_savings = suggested_class !== group.resource_class ? 
+          Math.round(group.total_credits * 0.5) : 0;
+        
+        return {
+          job_name: group.job_name,
+          project_name: group.project_name,
+          workflow_name: group.workflow_name,
+          resource_class: group.resource_class,
+          avg_cpu_pct: avg_cpu.toFixed(1),
+          avg_ram_pct: avg_ram.toFixed(1),
+          total_credits: group.total_credits.toFixed(0),
+          total_runs: group.total_runs,
+          avg_seconds_per_run: (group.total_seconds / group.total_runs).toFixed(1),
+          suggested_class: suggested_class,
+          estimated_credit_savings: estimated_savings
+        };
+      });
+      
+      // Sort by potential savings
+      reportData.sort((a, b) => parseFloat(b.total_credits) - parseFloat(a.total_credits));
+      
+      // Convert to CSV
+      const csv = Papa.unparse(reportData);
+      
+      // Create download link
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'circleci-underutilized-jobs.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
     function updateSummaryStats() {
