@@ -73,7 +73,7 @@
       <div class="mb-8 p-6 bg-white rounded-lg shadow" id="resource-utilization-section">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">Resource Utilization Insights</h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div class="p-4 bg-blue-50 rounded-lg shadow-sm">
             <h3 class="text-lg font-medium text-blue-700">Underutilized Jobs</h3>
             <p id="underutilized-count" class="mt-1 text-3xl font-semibold text-blue-900">0</p>
@@ -82,7 +82,12 @@
           <div class="p-4 bg-green-50 rounded-lg shadow-sm">
             <h3 class="text-lg font-medium text-green-700">Potential Credit Savings</h3>
             <p id="potential-savings" class="mt-1 text-3xl font-semibold text-green-900">0</p>
-            <p class="text-sm text-green-600 mt-1">Estimated credits that could be saved by right-sizing</p>
+            <p class="text-sm text-green-600 mt-1">Estimated savings by right-sizing</p>
+          </div>
+          <div class="p-4 bg-amber-50 rounded-lg shadow-sm">
+            <h3 class="text-lg font-medium text-amber-700">Overprovisioned Jobs</h3>
+            <p id="overprovisioned-count" class="mt-1 text-3xl font-semibold text-amber-900">0</p>
+            <p class="text-sm text-amber-600 mt-1">Jobs with CPU or RAM utilization ≥ 80%</p>
           </div>
         </div>
         
@@ -100,36 +105,79 @@
           </div>
         </div>
         
-        <!-- Top 10 Underutilized Jobs -->
+        <!-- Tabs for Underutilized and Overprovisioned Jobs -->
         <div class="mb-6">
-          <h3 class="text-lg font-medium text-gray-700 mb-2">Top 10 Underutilized Jobs (By Total Credits)</h3>
-          <div id="no-underutilized-message" class="hidden p-4 bg-gray-50 rounded-md text-gray-600">
-            No jobs found with both CPU and RAM utilization ≤ 40%.
+          <div class="border-b border-gray-200 mb-4">
+            <nav class="-mb-px flex space-x-8">
+              <button id="underutilized-tab" class="px-1 py-4 text-sm font-medium text-blue-600 border-b-2 border-blue-600">
+                Underutilized Jobs
+              </button>
+              <button id="overprovisioned-tab" class="px-1 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent">
+                Overprovisioned Jobs
+              </button>
+            </nav>
           </div>
-          <div class="overflow-x-auto">
-            <table id="underutilized-jobs-table" class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Name</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resource Class</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. CPU %</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. RAM %</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Credits</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Class</th>
-                </tr>
-              </thead>
-              <tbody id="underutilized-jobs-body" class="bg-white divide-y divide-gray-200">
-                <!-- Table will be populated by JavaScript -->
-              </tbody>
-            </table>
+          
+          <!-- Underutilized Jobs Tab Content -->
+          <div id="underutilized-jobs-content">
+            <h3 class="text-lg font-medium text-gray-700 mb-2">Top 10 Underutilized Jobs (By Total Credits)</h3>
+            <div id="no-underutilized-message" class="hidden p-4 bg-gray-50 rounded-md text-gray-600">
+              No jobs found with both CPU and RAM utilization ≤ 40%.
+            </div>
+            <div class="overflow-x-auto">
+              <table id="underutilized-jobs-table" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Name</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resource Class</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. CPU %</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. RAM %</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Credits</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Class</th>
+                  </tr>
+                </thead>
+                <tbody id="underutilized-jobs-body" class="bg-white divide-y divide-gray-200">
+                  <!-- Table will be populated by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <!-- Overprovisioned Jobs Tab Content -->
+          <div id="overprovisioned-jobs-content" class="hidden">
+            <h3 class="text-lg font-medium text-gray-700 mb-2">Top 10 Overprovisioned Jobs (By High Utilization)</h3>
+            <div id="no-overprovisioned-message" class="hidden p-4 bg-gray-50 rounded-md text-gray-600">
+              No jobs found with CPU or RAM utilization ≥ 80%.
+            </div>
+            <div class="overflow-x-auto">
+              <table id="overprovisioned-jobs-table" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Name</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resource Class</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. CPU %</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. RAM %</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Credits</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Class</th>
+                  </tr>
+                </thead>
+                <tbody id="overprovisioned-jobs-body" class="bg-white divide-y divide-gray-200">
+                  <!-- Table will be populated by JavaScript -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
         
-        <!-- Download Underutilized Jobs Button -->
-        <div class="flex justify-end">
+        <!-- Download Buttons -->
+        <div class="flex justify-end space-x-4">
+          <button id="download-overprovisioned-report" class="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            Download Overprovisioned Report
+          </button>
           <button id="download-utilization-report" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            Download Utilization Report (CSV)
+            Download Underutilized Report
           </button>
         </div>
       </div>
@@ -211,8 +259,9 @@
     let ramUtilizationChart = null;
     let showDaily = true;
     
-    // Resource utilization threshold (40%)
-    const UTILIZATION_THRESHOLD = 40;
+    // Resource utilization thresholds
+    const UNDERUTILIZATION_THRESHOLD = 40;
+    const OVERPROVISIONING_THRESHOLD = 80;
     
     // Default branch name - change this as needed
     const defaultBranchName = "main";
@@ -239,10 +288,44 @@
         }
       });
       
+      // Set up utilization tabs
+      document.getElementById('underutilized-tab').addEventListener('click', function() {
+        showUnderutilizedTab();
+      });
+      
+      document.getElementById('overprovisioned-tab').addEventListener('click', function() {
+        showOverprovisionedTab();
+      });
+      
       // Set up download buttons
       document.getElementById('download-report').addEventListener('click', downloadReport);
       document.getElementById('download-utilization-report').addEventListener('click', downloadUtilizationReport);
+      document.getElementById('download-overprovisioned-report').addEventListener('click', downloadOverprovisionedReport);
     });
+    
+    function showUnderutilizedTab() {
+      // Update tab styling
+      document.getElementById('underutilized-tab').classList.add('text-blue-600', 'border-blue-600');
+      document.getElementById('underutilized-tab').classList.remove('text-gray-500', 'border-transparent');
+      document.getElementById('overprovisioned-tab').classList.remove('text-blue-600', 'border-blue-600');
+      document.getElementById('overprovisioned-tab').classList.add('text-gray-500', 'border-transparent');
+      
+      // Show/hide content
+      document.getElementById('underutilized-jobs-content').classList.remove('hidden');
+      document.getElementById('overprovisioned-jobs-content').classList.add('hidden');
+    }
+    
+    function showOverprovisionedTab() {
+      // Update tab styling
+      document.getElementById('overprovisioned-tab').classList.add('text-blue-600', 'border-blue-600');
+      document.getElementById('overprovisioned-tab').classList.remove('text-gray-500', 'border-transparent');
+      document.getElementById('underutilized-tab').classList.remove('text-blue-600', 'border-blue-600');
+      document.getElementById('underutilized-tab').classList.add('text-gray-500', 'border-transparent');
+      
+      // Show/hide content
+      document.getElementById('overprovisioned-jobs-content').classList.remove('hidden');
+      document.getElementById('underutilized-jobs-content').classList.add('hidden');
+    }
 
     function handleFileUpload(event) {
       const file = event.target.files[0];
@@ -369,12 +452,21 @@
     function updateResourceUtilizationAnalysis() {
       // Identify underutilized jobs (both CPU and RAM <= 40%)
       const underutilizedJobs = parsedData.filter(job => {
-        return job.MEDIAN_CPU_UTILIZATION_PCT <= UTILIZATION_THRESHOLD &&
-               job.MEDIAN_RAM_UTILIZATION_PCT <= UTILIZATION_THRESHOLD;
+        return job.MEDIAN_CPU_UTILIZATION_PCT <= UNDERUTILIZATION_THRESHOLD &&
+               job.MEDIAN_RAM_UTILIZATION_PCT <= UNDERUTILIZATION_THRESHOLD;
+      });
+      
+      // Identify overprovisioned jobs (either CPU or RAM >= 80%)
+      const overprovisionedJobs = parsedData.filter(job => {
+        return job.MEDIAN_CPU_UTILIZATION_PCT >= OVERPROVISIONING_THRESHOLD ||
+               job.MEDIAN_RAM_UTILIZATION_PCT >= OVERPROVISIONING_THRESHOLD;
       });
       
       // Update underutilized count
       document.getElementById('underutilized-count').textContent = underutilizedJobs.length.toLocaleString();
+      
+      // Update overprovisioned count
+      document.getElementById('overprovisioned-count').textContent = overprovisionedJobs.length.toLocaleString();
       
       // Calculate potential savings
       // Assuming we could save ~50% of credits for underutilized jobs by right-sizing
@@ -387,8 +479,197 @@
       // Update underutilized jobs table
       updateUnderutilizedJobsTable(underutilizedJobs);
       
-      // Enable/disable download button
+      // Update overprovisioned jobs table
+      updateOverprovisionedJobsTable(overprovisionedJobs);
+      
+      // Enable/disable download buttons
       document.getElementById('download-utilization-report').disabled = underutilizedJobs.length === 0;
+      document.getElementById('download-overprovisioned-report').disabled = overprovisionedJobs.length === 0;
+    }
+    
+    function updateOverprovisionedJobsTable(overprovisionedJobs) {
+      const tableBody = document.getElementById('overprovisioned-jobs-body');
+      const noJobsMessage = document.getElementById('no-overprovisioned-message');
+      
+      // Clear existing rows
+      tableBody.innerHTML = '';
+      
+      if (overprovisionedJobs.length === 0) {
+        // Show "no jobs" message
+        noJobsMessage.classList.remove('hidden');
+        document.getElementById('overprovisioned-jobs-table').classList.add('hidden');
+        return;
+      }
+      
+      // Hide "no jobs" message and show table
+      noJobsMessage.classList.add('hidden');
+      document.getElementById('overprovisioned-jobs-table').classList.remove('hidden');
+      
+      // Group overprovisioned jobs by name/project to calculate averages
+      const jobGroups = {};
+      overprovisionedJobs.forEach(job => {
+        const key = `${job.JOB_NAME}|${job.PROJECT_NAME}|${job.RESOURCE_CLASS}`;
+        if (!jobGroups[key]) {
+          jobGroups[key] = {
+            job_name: job.JOB_NAME,
+            project_name: job.PROJECT_NAME,
+            resource_class: job.RESOURCE_CLASS,
+            total_credits: 0,
+            cpuValues: [],
+            ramValues: [],
+            count: 0
+          };
+        }
+        
+        jobGroups[key].total_credits += job.TOTAL_CREDITS;
+        jobGroups[key].cpuValues.push(job.MEDIAN_CPU_UTILIZATION_PCT);
+        jobGroups[key].ramValues.push(job.MEDIAN_RAM_UTILIZATION_PCT);
+        jobGroups[key].count++;
+      });
+      
+      // Calculate averages
+      Object.values(jobGroups).forEach(group => {
+        group.avg_cpu = _.mean(group.cpuValues);
+        group.avg_ram = _.mean(group.ramValues);
+        
+        // Determine suggested resource class based on utilization
+        group.suggested_class = getUpgradedResourceClass(group.resource_class, group.avg_cpu, group.avg_ram);
+      });
+      
+      // Sort by highest utilization (using max of CPU and RAM) and get top 10
+      const sortedGroups = Object.values(jobGroups)
+        .sort((a, b) => Math.max(b.avg_cpu, b.avg_ram) - Math.max(a.avg_cpu, a.avg_ram))
+        .slice(0, 10);
+      
+      // Add rows to table
+      sortedGroups.forEach(group => {
+        const row = document.createElement('tr');
+        
+        // Highlight high utilization values
+        const cpuClass = group.avg_cpu >= OVERPROVISIONING_THRESHOLD ? 'text-amber-600 font-medium' : 'text-gray-500';
+        const ramClass = group.avg_ram >= OVERPROVISIONING_THRESHOLD ? 'text-amber-600 font-medium' : 'text-gray-500';
+        
+        // Add cells
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${group.job_name}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${group.project_name}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${group.resource_class}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm ${cpuClass}">${group.avg_cpu.toFixed(1)}%</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm ${ramClass}">${group.avg_ram.toFixed(1)}%</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${group.total_credits.toFixed(0)}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm ${group.suggested_class !== group.resource_class ? 'text-amber-600 font-medium' : 'text-gray-500'}">${group.suggested_class}</td>
+        `;
+        
+        tableBody.appendChild(row);
+      });
+    }
+    
+    function getUpgradedResourceClass(currentClass, cpuUtil, ramUtil) {
+      // Only suggest upgrade if clearly overprovisioned
+      if (cpuUtil < OVERPROVISIONING_THRESHOLD && ramUtil < OVERPROVISIONING_THRESHOLD) {
+        return currentClass;
+      }
+      
+      // Very high utilization (90%+)
+      const isHighUtil = cpuUtil >= 90 || ramUtil >= 90;
+      
+      // For Docker and machine executors
+      if (currentClass.includes('small')) {
+        return 'medium';
+      } else if (currentClass.includes('medium') && !currentClass.includes('medium+')) {
+        return isHighUtil ? 'large' : currentClass + '+';
+      } else if (currentClass.includes('medium+')) {
+        return 'large';
+      } else if (currentClass.includes('large')) {
+        return isHighUtil ? '2xlarge' : 'xlarge';
+      } else if (currentClass.includes('xlarge')) {
+        return '2xlarge';
+      } else if (currentClass.includes('2xlarge') && !currentClass.includes('2xlarge+')) {
+        return '2xlarge+';
+      }
+      
+      // If already at largest size or can't determine pattern
+      return currentClass;
+    }
+    
+    function downloadOverprovisionedReport() {
+      // Identify overprovisioned jobs
+      const overprovisionedJobs = parsedData.filter(job => {
+        return job.MEDIAN_CPU_UTILIZATION_PCT >= OVERPROVISIONING_THRESHOLD ||
+               job.MEDIAN_RAM_UTILIZATION_PCT >= OVERPROVISIONING_THRESHOLD;
+      });
+      
+      if (overprovisionedJobs.length === 0) {
+        alert('No overprovisioned jobs found.');
+        return;
+      }
+      
+      // Group by job name and project
+      const jobGroups = {};
+      overprovisionedJobs.forEach(job => {
+        const key = `${job.JOB_NAME}|${job.PROJECT_NAME}|${job.RESOURCE_CLASS}`;
+        if (!jobGroups[key]) {
+          jobGroups[key] = {
+            job_name: job.JOB_NAME,
+            project_name: job.PROJECT_NAME,
+            workflow_name: job.WORKFLOW_NAME,
+            resource_class: job.RESOURCE_CLASS,
+            total_credits: 0,
+            total_runs: 0,
+            total_seconds: 0,
+            cpuValues: [],
+            ramValues: [],
+            suggested_class: ''
+          };
+        }
+        
+        jobGroups[key].total_credits += job.TOTAL_CREDITS;
+        jobGroups[key].total_runs += 1;
+        jobGroups[key].total_seconds += job.JOB_RUN_SECONDS;
+        jobGroups[key].cpuValues.push(job.MEDIAN_CPU_UTILIZATION_PCT);
+        jobGroups[key].ramValues.push(job.MEDIAN_RAM_UTILIZATION_PCT);
+      });
+      
+      // Calculate averages and suggested classes
+      const reportData = Object.values(jobGroups).map(group => {
+        const avg_cpu = _.mean(group.cpuValues);
+        const avg_ram = _.mean(group.ramValues);
+        const suggested_class = getUpgradedResourceClass(group.resource_class, avg_cpu, avg_ram);
+        
+        return {
+          job_name: group.job_name,
+          project_name: group.project_name,
+          workflow_name: group.workflow_name,
+          resource_class: group.resource_class,
+          avg_cpu_pct: avg_cpu.toFixed(1),
+          avg_ram_pct: avg_ram.toFixed(1),
+          total_credits: group.total_credits.toFixed(0),
+          total_runs: group.total_runs,
+          avg_seconds_per_run: (group.total_seconds / group.total_runs).toFixed(1),
+          suggested_class: suggested_class,
+          bottleneck: avg_cpu > avg_ram ? 'CPU' : 'RAM'
+        };
+      });
+      
+      // Sort by highest utilization 
+      reportData.sort((a, b) => {
+        const maxA = Math.max(parseFloat(a.avg_cpu_pct), parseFloat(a.avg_ram_pct));
+        const maxB = Math.max(parseFloat(b.avg_cpu_pct), parseFloat(b.avg_ram_pct));
+        return maxB - maxA;
+      });
+      
+      // Convert to CSV
+      const csv = Papa.unparse(reportData);
+      
+      // Create download link
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'circleci-overprovisioned-jobs.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
     function updateUtilizationCharts() {
@@ -535,7 +816,6 @@
         group.avg_ram = _.mean(group.ramValues);
         
         // Determine suggested resource class based on utilization
-        // This is a simple heuristic and should be adjusted based on your resource classes
         group.suggested_class = getSuggestedResourceClass(group.resource_class, group.avg_cpu, group.avg_ram);
       });
       
@@ -575,7 +855,7 @@
       // GPU: medium+, large, xlarge, 2xlarge
       
       // Only suggest downgrade if clearly underutilized
-      if (cpuUtil > 40 || ramUtil > 40) {
+      if (cpuUtil > UNDERUTILIZATION_THRESHOLD || ramUtil > UNDERUTILIZATION_THRESHOLD) {
         return currentClass;
       }
       
@@ -604,8 +884,8 @@
     function downloadUtilizationReport() {
       // Identify underutilized jobs
       const underutilizedJobs = parsedData.filter(job => {
-        return job.MEDIAN_CPU_UTILIZATION_PCT <= UTILIZATION_THRESHOLD &&
-               job.MEDIAN_RAM_UTILIZATION_PCT <= UTILIZATION_THRESHOLD;
+        return job.MEDIAN_CPU_UTILIZATION_PCT <= UNDERUTILIZATION_THRESHOLD &&
+               job.MEDIAN_RAM_UTILIZATION_PCT <= UNDERUTILIZATION_THRESHOLD;
       });
       
       if (underutilizedJobs.length === 0) {
