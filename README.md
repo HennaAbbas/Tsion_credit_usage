@@ -1,4 +1,5 @@
-# CircleCI Insights Dashboard
+# CircleCI Usage Report Visualization Dashboard
+> ⚠️ **WARNING:** This Usage Report Visualization Dashboard is provided 'as-is' and 'as available' basis without any warranties of any kind. CircleCI disclaims all warranties, express or implied, including, but not limited to, all implied warranties of merchantability, title, fitness for a particular purpose, and noninfringement.
 
 A lightweight, browser-based dashboard for analyzing CircleCI usage metrics to optimize CI/CD costs and performance.
 
