@@ -121,8 +121,8 @@ To run or modify this dashboard locally:
 1. Clone the repository:
 
 ```
-git clone https://github.com/your-username/circleci-insights-dashboard.git
-cd circleci-insights-dashboard
+git clone https://github.com/your-username/circleci-credit-report-visualizer.git
+cd circleci-credit-report-visualizer
 ```
 
 2. Open `index.html` in your browser or use a local development server:
