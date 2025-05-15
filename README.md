@@ -68,7 +68,7 @@ You can use the dashboard directly from GitHub Pages: https://hennaabbas.github.
 You can obtain your CircleCI usage data in two ways:
 
 #### Option 1: Using the generate_cci_usage_report Script
-CircleCI provides the generate_cci_usage_report script to help automate the process of creating and retrieving usage reports.
+You can use the generate_cci_usage_report script to help automate the process of creating and retrieving usage reports: https://github.com/CircleCI-Public/generate_cci_usage_report
 
 #### Option 2: Manual Download from CircleCI
 1. You can manually create and retrieve your usage report by using the CircleCI v2 API `/usage` endpoints: https://circleci.com/docs/api/v2/index.html#tag/Usage
