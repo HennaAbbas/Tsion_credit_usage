@@ -4,6 +4,10 @@
 
 A lightweight, browser-based dashboard for analyzing CircleCI usage metrics to optimize CI/CD costs and performance through detailed resource utilization insights.
 
+> ## Security
+> ## Client-side processing only: All data processing occurs entirely in the browser with no server-side components. The file is parsed using PapaParse and analyzed using JavaScript libraries like Lodash and Chart.js. This is good for security as no data leaves the user's browser.
+## No data persistence: The application doesn't store or transmit the uploaded CSV data anywhere - it's only processed in memory. When the page is refreshed or closed, all data is discarded.
+
 ## Features
 
 This dashboard provides comprehensive visualizations to help you understand your CircleCI usage patterns and optimize resource allocation:
