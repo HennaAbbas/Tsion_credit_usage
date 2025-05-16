@@ -158,4 +158,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 5. Open a Pull Request to the main repository
 
 ## Support
-If you encounter any issues or have questions, please open an issue on GitHub.
+If you encounter any issues, have questions or want to share feedback, please open an issue on GitHub.
