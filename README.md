@@ -62,7 +62,7 @@ This dashboard provides comprehensive visualizations to help you understand your
 ## How to Use
 
 ### Access the Dashboard
-You can use the dashboard directly from GitHub Pages: https://hennaabbas.github.io/circleci-credit-report-visualizer/
+You can use the dashboard directly from GitHub Pages: https://hennaabbas.github.io/circleci-usage-report-visualizer/
 You may also run the code locally (see Local Development section below) 
 
 ### Getting Your CircleCI Usage Report
