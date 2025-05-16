@@ -140,7 +140,7 @@ python -m http.server
 npx serve
 ```
 
-3. Make any desired changes to `index.html`
+**Important Note**: The data in this dashboard only represents credit consumption from CircleCI jobs. It does not include credits used for user seats or other organizational charges. For a complete picture of your CircleCI costs, please refer to your Plans page in the CircleCI UI.
 
 ## Technologies Used
 * HTML/CSS/JavaScript
@@ -158,4 +158,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 5. Open a Pull Request to the main repository
 
 ## Support
-If you encounter any issues, have questions or want to share feedback, please open an issue on GitHub.
+If you encounter any issues, have questions, add a feature request or want to share feedback, please open an issue on GitHub.
