@@ -4,10 +4,6 @@
 
 A lightweight, browser-based dashboard for analyzing CircleCI usage metrics to optimize CI/CD costs and performance through detailed resource utilization insights.
 
-> ## Security
-> ## Client-side processing only: All data processing occurs entirely in the browser with no server-side components. The file is parsed using PapaParse and analyzed using JavaScript libraries like Lodash and Chart.js. This is good for security as no data leaves the user's browser.
-## No data persistence: The application doesn't store or transmit the uploaded CSV data anywhere - it's only processed in memory. When the page is refreshed or closed, all data is discarded.
-
 ## Features
 
 This dashboard provides comprehensive visualizations to help you understand your CircleCI usage patterns and optimize resource allocation:
@@ -67,6 +63,7 @@ This dashboard provides comprehensive visualizations to help you understand your
 
 ### Access the Dashboard
 You can use the dashboard directly from GitHub Pages: https://hennaabbas.github.io/circleci-credit-report-visualizer/
+You may also run the code locally (see Local Development section below) 
 
 ### Getting Your CircleCI Usage Report
 You can obtain your CircleCI usage data in two ways:
@@ -113,12 +110,12 @@ Based on the dashboard's recommendations:
 2. Consider strategies like parallelization, caching, or reduced test scope
 3. Implement test splitting for long test suites
 
-## Privacy and Security
-This dashboard:
-* Runs entirely in your browser
-* Never sends your data to any server
-* Processes all data locally using JavaScript
-* Doesn't store your CircleCI data anywhere
+> ## Privacy and Security
+> This dashboard:
+> * Runs entirely in your browser
+> * Never sends your data to any server
+> * Processes all data locally using JavaScript
+> * Doesn't store your CircleCI data anywhere
 
 ## Local Development
 To run or modify this dashboard locally:
@@ -130,6 +127,10 @@ cd circleci-credit-report-visualizer
 ```
 
 2. Open `index.html` in your browser or use a local development server:
+
+   - **Simple option**: Just open the `index.html` file directly in your browser
+     or
+   - **Using a local server**: For the best experience, run it on a local development server:
 
 ```
 # Python 3
