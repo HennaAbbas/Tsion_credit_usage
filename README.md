@@ -91,6 +91,9 @@ Note: Resource utilization analysis will only be available if your CSV includes 
    - Complete usage report
    - Underutilized jobs report
    - Overprovisioned jobs report
+     
+**Note**: The data in this dashboard only represents credit consumption from CircleCI jobs. It does not include credits used for user seats or other organizational charges. For a complete picture of your CircleCI costs, please refer to your Plans page in the CircleCI UI.  
+  
 
 ## Making Changes Based on Insights
 
@@ -140,7 +143,7 @@ python -m http.server
 npx serve
 ```
 
-**Important Note**: The data in this dashboard only represents credit consumption from CircleCI jobs. It does not include credits used for user seats or other organizational charges. For a complete picture of your CircleCI costs, please refer to your Plans page in the CircleCI UI.
+
 
 ## Technologies Used
 * HTML/CSS/JavaScript
