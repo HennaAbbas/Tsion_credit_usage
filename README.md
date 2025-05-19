@@ -46,7 +46,7 @@ This dashboard provides comprehensive visualizations to help you understand your
    * Determine which jobs might need larger resource classes
    * Prevent performance bottlenecks before they affect builds
   
-## Important Note on Resource Utilization Analysis
+#### Important Note on Resource Utilization Analysis
 
 #### Data Handling for Missing or `\\N` Values
 - Jobs with missing (`\\N`) values in CPU or RAM utilization metrics are included in the **total job count** and all general analyses
