@@ -45,6 +45,17 @@ This dashboard provides comprehensive visualizations to help you understand your
    * Identify jobs with CPU or RAM utilization ≥ 80%
    * Determine which jobs might need larger resource classes
    * Prevent performance bottlenecks before they affect builds
+  
+## Important Note on Resource Utilization Analysis
+
+### Data Handling for Missing or `\\N` Values
+- Jobs with missing (`\\N`) values in CPU or RAM utilization metrics are included in the **total job count** and all general analyses
+- These jobs are only excluded from being categorized as "underutilized" or "overprovisioned" in the resource utilization section
+- For a job to be considered "underutilized," **both** CPU and RAM utilization must be ≤ 40%
+- For a job to be considered "overprovisioned," **either** CPU or RAM utilization must be ≥ 80%
+- If your usage report contains many jobs with missing utilization data, the underutilization and overprovisioning counts may appear lower than expected
+
+The resource utilization analysis provides insights based only on jobs with valid utilization metrics. For the most accurate results, ensure your CircleCI usage report includes complete CPU and RAM utilization data.
 
 ### Performance Optimization
 9. **Top 10 Longest Running Jobs**
