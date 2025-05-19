@@ -48,7 +48,7 @@ This dashboard provides comprehensive visualizations to help you understand your
   
 ## Important Note on Resource Utilization Analysis
 
-# Data Handling for Missing or `\\N` Values
+#### Data Handling for Missing or `\\N` Values
 - Jobs with missing (`\\N`) values in CPU or RAM utilization metrics are included in the **total job count** and all general analyses
 - These jobs are only excluded from being categorized as "underutilized" or "overprovisioned" in the resource utilization section
 - If your usage report contains many jobs with missing utilization data, the underutilization and overprovisioning counts may appear lower than expected
