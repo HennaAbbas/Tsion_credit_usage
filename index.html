@@ -85,7 +85,7 @@
             <p class="text-sm text-green-600 mt-1">Estimated savings by right-sizing</p>
           </div>
           <div class="p-4 bg-amber-50 rounded-lg shadow-sm">
-            <h3 class="text-lg font-medium text-amber-700">Overprovisioned Jobs</h3>
+            <h3 class="text-lg font-medium text-amber-700">Underprovisioned Jobs</h3>
             <p id="overprovisioned-count" class="mt-1 text-3xl font-semibold text-amber-900">0</p>
             <p class="text-sm text-amber-600 mt-1">Jobs with CPU or RAM utilization ≥ 80%</p>
           </div>
@@ -105,7 +105,7 @@
           </div>
         </div>
         
-        <!-- Tabs for Underutilized and Overprovisioned Jobs -->
+        <!-- Tabs for Underutilized and Underprovisioned Jobs -->
         <div class="mb-6">
           <div class="border-b border-gray-200 mb-4">
             <nav class="-mb-px flex space-x-8">
@@ -113,7 +113,7 @@
                 Underutilized Jobs
               </button>
               <button id="overprovisioned-tab" class="px-1 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent">
-                Overprovisioned Jobs
+                Underprovisioned Jobs
               </button>
             </nav>
           </div>
@@ -144,9 +144,9 @@
             </div>
           </div>
           
-          <!-- Overprovisioned Jobs Tab Content -->
+          <!-- Underprovisioned Jobs Tab Content -->
           <div id="overprovisioned-jobs-content" class="hidden">
-            <h3 class="text-lg font-medium text-gray-700 mb-2">Top 10 Overprovisioned Jobs (By High Utilization)</h3>
+            <h3 class="text-lg font-medium text-gray-700 mb-2">Top 10 Underprovisioned Jobs (By High Utilization)</h3>
             <div id="no-overprovisioned-message" class="hidden p-4 bg-gray-50 rounded-md text-gray-600">
               No jobs found with CPU or RAM utilization ≥ 80%.
             </div>
@@ -174,7 +174,7 @@
         <!-- Download Buttons -->
         <div class="flex justify-end space-x-4">
           <button id="download-overprovisioned-report" class="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            Download Overprovisioned Report
+            Download Underprovisioned Report
           </button>
           <button id="download-utilization-report" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
             Download Underutilized Report
@@ -457,7 +457,7 @@
                job.MEDIAN_RAM_UTILIZATION_PCT <= UNDERUTILIZATION_THRESHOLD;
       });
       
-      // Identify overprovisioned jobs (either CPU or RAM >= 80%)
+      // Identify Underprovisioned jobs (either CPU or RAM >= 80%)
       const overprovisionedJobs = parsedData.filter(job => {
         return job.MEDIAN_CPU_UTILIZATION_PCT >= OVERPROVISIONING_THRESHOLD ||
                job.MEDIAN_RAM_UTILIZATION_PCT >= OVERPROVISIONING_THRESHOLD;
@@ -601,7 +601,7 @@
       });
       
       if (overprovisionedJobs.length === 0) {
-        alert('No overprovisioned jobs found.');
+        alert('No Underprovisioned jobs found.');
         return;
       }
       

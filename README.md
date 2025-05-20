@@ -33,7 +33,7 @@ This dashboard provides comprehensive visualizations to help you understand your
 ### Resource Utilization Insights
 6. **CPU & RAM Utilization Analytics**
    * View detailed CPU and RAM utilization distribution across all jobs
-   * Identify underutilized and overprovisioned resources
+   * Identify underutilized and underprovisioned resources
    * Get recommendations for right-sizing resource classes
 
 7. **Underutilized Jobs Analysis**
@@ -41,15 +41,15 @@ This dashboard provides comprehensive visualizations to help you understand your
    * Calculate potential credit savings from right-sizing
    * Get specific resource class recommendations
 
-8. **Overprovisioned Jobs Detection**
+8. **Underprovisioned Jobs Detection**
    * Identify jobs with CPU or RAM utilization ≥ 80%
    * Determine which jobs might need larger resource classes
    * Prevent performance bottlenecks before they affect builds
   
 #### Important Note on Resource Utilization Analysis - Data Handling for Missing or `\\N` Values: 
 - Jobs with missing (`\\N`) values in CPU or RAM utilization metrics are included in the **total job count** and all general analyses
-- These jobs are only excluded from being categorized as "underutilized" or "overprovisioned" in the resource utilization section
-- If your usage report contains many jobs with missing utilization data, the underutilization and overprovisioning counts may appear lower than expected
+- These jobs are only excluded from being categorized as "underutilized" or "underprovisioned" in the resource utilization section
+- If your usage report contains many jobs with missing utilization data, the underutilization and underprovisioning counts may appear lower than expected
 
 The resource utilization analysis provides insights based only on jobs with valid utilization metrics. For the most accurate results, ensure your CircleCI usage report includes complete CPU and RAM utilization data.
 
@@ -93,11 +93,11 @@ Note: Resource utilization analysis will only be available if your CSV includes 
 1. Upload your CircleCI usage report CSV file using the file input
 2. The dashboard will automatically analyze the data and display all visualizations
 3. Toggle between daily and weekly credit burn rates using the buttons
-4. Switch between underutilized and overprovisioned jobs using the tabs
+4. Switch between underutilized and underprovisioned jobs using the tabs
 5. Download detailed reports for further analysis using the buttons at the bottom:
    - Complete usage report
    - Underutilized jobs report
-   - Overprovisioned jobs report
+   - Underprovisioned jobs report
      
 **Note**: The data in this dashboard only represents credit consumption from CircleCI jobs. It does not include credits used for user seats or other organizational charges. For a complete picture of your CircleCI costs, please refer to your Plans page in the CircleCI UI.  
   
