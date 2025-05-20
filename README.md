@@ -132,7 +132,7 @@ To run or modify this dashboard locally:
 1. Clone the repository:
 
 ```
-git clone https://github.com/your-username/circleci-credit-report-visualizer.git
+git clone https://github.com/HennaAbbas/circleci-credit-report-visualizer.git
 cd circleci-credit-report-visualizer
 ```
 
